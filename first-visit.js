@@ -2,14 +2,14 @@ document.addEventListener("DOMContentLoaded", async function() {
     const deviceInfo = getDeviceInfo(); // Coleta informações sobre o dispositivo.
     const userIP = await getUserIP(); // Obtém o IP do usuário.
     const userCity = await fetchLocation(userIP); // Obtém a cidade do usuário baseada no IP.
-    const subidData = getDynamicSubids(); // Extrai os subids da URL.
-    const brasilTime = getBrasilTime(); // Obtém a data e hora no horário de Brasília
+    const urlParams = getAllUrlParams(); // Extrai todos os parâmetros da URL.
+    const brasilTime = getBrasilTime(); // Obtém a data e hora no horário de Brasília.
 
     const postData = {
         ip: userIP,
         city: userCity,
         device: deviceInfo,
-        subids: subidData,
+        params: urlParams, // Adiciona todos os parâmetros da URL no payload enviado.
         datetime: brasilTime // Adiciona a data e hora no payload enviado.
     };
 
@@ -53,16 +53,14 @@ async function fetchLocation(ip) {
     }
 }
 
-// Captura parâmetros dinâmicos da URL, identificando quaisquer 'subid's.
-function getDynamicSubids() {
+// Captura todos os parâmetros da URL.
+function getAllUrlParams() {
     const queryParams = new URLSearchParams(window.location.search);
-    let subidData = {};
+    const paramsData = {};
     for (const [key, value] of queryParams.entries()) {
-        if (key.startsWith('subid')) {
-            subidData[key] = value;
-        }
+        paramsData[key] = value;
     }
-    return subidData;
+    return paramsData;
 }
 
 // Determina o tipo de dispositivo com base no user agent.
@@ -81,10 +79,12 @@ function isLikelyBot(userAgent) {
     const botSignatures = [
         'bot', 'crawl', 'slurp', 'spider', 'curl', 'wget', 'python', 'php',
         'httpclient', 'java', 'ruby', 'perl', 'monitor', 'archive', 'spinn3r',
-        'httprequest', 'getright', 'bingbot', 'googlebot', 'yandexbot', 'duckduckbot','facebot','adsbot-google'
+        'httprequest', 'getright', 'bingbot', 'googlebot', 'yandexbot', 'duckduckbot', 'facebot', 'adsbot-google'
     ];
-    const botDetected = botSignatures.find(bot => userAgent.toLowerCase().includes(bot));
-    return botDetected ? `Bot detected: ${botDetected}` : 'No bot detected';
+    const botDetected = botSignatures.find(function(bot) {
+        return userAgent.toLowerCase().includes(bot);
+    });
+    return botDetected ? "Bot detected: " + botDetected : "No bot detected";
 }
 
 // Envia os dados coletados para um webhook especificado.
